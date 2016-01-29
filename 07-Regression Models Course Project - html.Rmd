@@ -1,0 +1,86 @@
+---
+title: "Regression Models Course Project"
+author: "John Walker"
+date: "January 28, 2016"
+output: html_document
+fontsize: 9pt
+geometry: margin=0.5in 
+---
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+require(ggplot2) ; require(GGally) ; require(car); require(knitr)
+data(mtcars)
+```
+### Executive Summary
+From the 1974 Motor Trend dataset `data(mtcars)` we select a linear model to answer two questions: 
+1) Is an automatic or manual transmission better for MPG? We find that **manual transmission is better** and that the difference using this dataset is statistically significant. The parsimonious model for mpg uses engine weight, quarter mile time and automatic vs manual transmission as regressors. 
+2) Quantify the MPG difference between automatic and manual transmissions. Our model shows that changing from automatic to **manual transmission improves mileage by about 2.9 mpg**. 
+
+### Exploratory Data Analysis
+From the dataset documentation, cars with automatic transmission have a zero value for the `am` variable so it might be more readable to use values of "auto" and "manual" as factors. It seems to make sense to treat the am and also the vs variable as factors, where v indicates a "V" (value zero) or straight cylinder alignment. Looking at the variables in the mtcars dataset it's likely there are several highly correlated variables.
+```{r}
+mtcars$am <- as.factor(ifelse(mtcars$am == 0, "auto", "man")) ; 
+mtcars$vs <- as.factor(ifelse(mtcars$vs == 0, "V", "Str"))
+str(mtcars)
+```
+From `mtcars` we can do an exploratory pairs plot:
+```{r, echo=FALSE, fig.width=8, fig.height=8, warning=FALSE, message=FALSE}
+g <- ggpairs(mtcars,
+             lower=list(continuous=wrap("smooth", colour="blue"), combo="facetdensity", discrete="facetbar"), 
+             upper=list(continuous="cor", combo=wrap("facethist", colour="blue"), discrete="ratio"),
+             title="Figure 1: Exploratory Pairs Graph")
+g <- g + theme(legend.position = "none", 
+               panel.grid.major = element_blank(), 
+               axis.ticks = element_blank())
+g
+```
+
+Looking at mileage based on weight, number of cylinders (as dot size) and transmission type we can see the data is not evenly distributed for automatic and manual transmissions. 
+```{r, echo=FALSE, fig.width=8, fig.height=4, warning=FALSE, message=FALSE}
+p <- ggplot(data=mtcars, aes(x=wt, y=mpg, colour=am, size=cyl)) + 
+    geom_point() + 
+    geom_smooth() + 
+    ggtitle("Figure 2: MPG looking at Weight, Cylinders and Transmission Type") + labs(x="Weight", y="Miles per US Gallon")
+p
+```
+
+### Fitting and Selecting a Model
+If we fit a linear model for mpg using only am as a regressor, the coefficients show the mean mileage for an automatic at 17.147mpg and that mileage increases by 7.245 mpg changing from automatic to manual. The P value for the difference from auto to manual 0.000285 is small so we can say the difference auto/manual is significant but in this model the $\it {R^2}$ is 0.359 so automatic/manual only explains about 36% of the variation in mpg for the data. We need a better model than this one. 
+```{r, collapse=TRUE}
+fit0 <- lm(mpg ~ factor(am), mtcars) ; summary(fit0)$coef
+```
+If we fit a model using all the variables as regressors to predict mpg (knowing from the pairs plot that several of these are highly correlated) we can see from the square root of the variable inflation factor (VIF) - the increase in standard error - that this is not the right model either. We've gone from underfit to overfit.
+```{r, collapse=TRUE}
+fitall <- lm(mpg ~ cyl + disp + hp + drat+ wt + qsec + factor(vs) + factor(am) + gear + carb, mtcars)
+sqrt(vif(fitall))
+```
+We can use the step function from the model with all the variables to find a more parsimonious fit at a lower standard error - resulting in a model predicting mpg from weight, qsec (acceleration) and auto/manual transmission. 
+```{r}
+steps <- step(fitall, k=log(nrow(mtcars)), direction = "both", trace = FALSE)
+summary(steps)
+fitbest <- lm(mpg ~ wt + qsec + factor(am), mtcars)
+```
+We can look at the step result using nested models. The first three variables weight, qsec and auto/manual reduce the residual sum of squares. Adding engine displacement to the fourth model does not reduce RSS much and is not statistically significant even though displacement is highly correlated to mpg.
+```{r}
+fit1 <- lm(mpg ~ wt, mtcars)
+fit2 <- lm(mpg ~ wt + qsec, mtcars)
+fit3 <- lm(mpg ~ wt + qsec + factor(am), mtcars)
+fit4 <- lm(mpg ~ wt + qsec + factor(am) + disp, mtcars)
+anova(fit1, fit2, fit3, fit4)
+```
+### Interpretation: Coefficients, Residuals and Uncertainty
+In the best fit model changing from automatic to manual transmission account improves mpg by 2.9. From the P-value it is significant, but only just so. The standard error has increased compared to the original model but the model now accounts for 83% of the variation mpg. Looking at variable inflation for the new model the numbers look much better. A confidence interval from the new model `confint(fitbest)` says with 95% confidence that the actual value is between 0.04 and 5.8 mpg gained switching from automatic to manual transmissions. 
+```{r, collapse=TRUE}
+sqrt(vif(fitbest))
+```
+Looking at the residuals vs fitted plot (Figure 4a), there is no clear pattern remaining showing some quality of fit. The Q-Q plot (Appendix - Figure 4b) shows a slightly straight line - certainly problems but perhaps not a bad fit for a small number of data points. The Scale-Location and Residuals vs Leverage plots show no major problems. The influence plot (Figure 5) shows that some points do have more significant influence though none exceed Cook's distance value of 0.5 or more.
+
+```{r, echo=FALSE, fig.width=6, fig.height=6, warning=FALSE, message=FALSE}
+par(mfrow=c(2,2))
+plot(fitbest)
+mtext("Figures 4 a,b,c,d: Residual Plots from the fitbest linear model", side = 3, line = -2, outer = TRUE)
+```
+
+```{r, echo=FALSE, fig.width=8, fig.height=4, warning=FALSE, message=FALSE}
+influencePlot(fitbest, id.method="identify", main="Figure 5:Influence Plot", sub="Circle size is proportial to Cook's Distance" )
+```
+
