@@ -1,0 +1,7 @@
+name: Publish Document
+account: rpubs
+server: rpubs.com
+bundleId:
+        https://api.rpubs.com/api/v1/document/147886/c036befea8034e95b40b9ed864207a33
+url: http://rpubs.com/jrwalker/147886
+when: 1454124800.70495

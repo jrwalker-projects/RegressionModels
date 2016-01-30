@@ -6,12 +6,13 @@ output: html_document
 fontsize: 9pt
 geometry: margin=0.5in 
 ---
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE}
 require(ggplot2) ; require(GGally) ; require(car); require(knitr)
 data(mtcars)
 ```
 ### Executive Summary
 From the 1974 Motor Trend dataset `data(mtcars)` we select a linear model to answer two questions: 
+
 1) Is an automatic or manual transmission better for MPG? We find that **manual transmission is better** and that the difference using this dataset is statistically significant. The parsimonious model for mpg uses engine weight, quarter mile time and automatic vs manual transmission as regressors. 
 2) Quantify the MPG difference between automatic and manual transmissions. Our model shows that changing from automatic to **manual transmission improves mileage by about 2.9 mpg**. 
 
@@ -23,7 +24,7 @@ mtcars$vs <- as.factor(ifelse(mtcars$vs == 0, "V", "Str"))
 str(mtcars)
 ```
 From `mtcars` we can do an exploratory pairs plot:
-```{r, echo=FALSE, fig.width=8, fig.height=8, warning=FALSE, message=FALSE}
+```{r, fig.width=8, fig.height=8, warning=FALSE, message=FALSE}
 g <- ggpairs(mtcars,
              lower=list(continuous=wrap("smooth", colour="blue"), combo="facetdensity", discrete="facetbar"), 
              upper=list(continuous="cor", combo=wrap("facethist", colour="blue"), discrete="ratio"),
@@ -35,7 +36,7 @@ g
 ```
 
 Looking at mileage based on weight, number of cylinders (as dot size) and transmission type we can see the data is not evenly distributed for automatic and manual transmissions. 
-```{r, echo=FALSE, fig.width=8, fig.height=4, warning=FALSE, message=FALSE}
+```{r, fig.width=8, fig.height=4, warning=FALSE, message=FALSE}
 p <- ggplot(data=mtcars, aes(x=wt, y=mpg, colour=am, size=cyl)) + 
     geom_point() + 
     geom_smooth() + 
@@ -74,13 +75,14 @@ sqrt(vif(fitbest))
 ```
 Looking at the residuals vs fitted plot (Figure 4a), there is no clear pattern remaining showing some quality of fit. The Q-Q plot (Appendix - Figure 4b) shows a slightly straight line - certainly problems but perhaps not a bad fit for a small number of data points. The Scale-Location and Residuals vs Leverage plots show no major problems. The influence plot (Figure 5) shows that some points do have more significant influence though none exceed Cook's distance value of 0.5 or more.
 
-```{r, echo=FALSE, fig.width=6, fig.height=6, warning=FALSE, message=FALSE}
+```{r, fig.width=6, fig.height=6, warning=FALSE, message=FALSE}
 par(mfrow=c(2,2))
 plot(fitbest)
 mtext("Figures 4 a,b,c,d: Residual Plots from the fitbest linear model", side = 3, line = -2, outer = TRUE)
 ```
 
-```{r, echo=FALSE, fig.width=8, fig.height=4, warning=FALSE, message=FALSE}
+```{r, fig.width=8, fig.height=4, warning=FALSE, message=FALSE}
 influencePlot(fitbest, id.method="identify", main="Figure 5:Influence Plot", sub="Circle size is proportial to Cook's Distance" )
 ```
+
 

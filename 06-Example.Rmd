@@ -1,0 +1,75 @@
+---
+title: "Regression Models Course Project"
+author: "John Walker"
+date: "18 Dec 2015"
+output: rmarkdown::tufte_handout
+---
+# Overview
+
+Looking a tooth growth data [E.W. Compton 1946](http://jn.nutrition.org/content/33/5/491.full.pdf) it provides a data frame with 60 observations on 3 variables:
+
+1. len	 numeric Tooth length in microns.
+2. supp	 factor	 Supplement type (VC or OJ).
+3. dose	 numeric Dose in milligrams.
+
+The course project is to perform basic exploratory analysis, use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose and to state conclusions from the tests and describe assumptions needed to form the conclusions.
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+require(ggplot2)
+require(plyr)
+require(xtable)
+options(xtable.comment = FALSE)
+options(xtable.booktabs = TRUE)
+
+```
+
+
+# Exploratory Data Analysis
+An exploratory look at the tooth growth data set
+```{r}
+library(datasets)
+data("ToothGrowth")
+str(ToothGrowth)
+xtable(head(ToothGrowth, 3), caption="First rows of ToothGrowth data")
+summary(ToothGrowth)
+```
+shows 60 rows of the three variables - half for each supplement orange juice and vitamin C - grouped evenly into ten measurements at three dosage levels: 0.5mg, 1.0mg and 2.0 mg.
+```{r}
+table(ToothGrowth$supp, ToothGrowth$dose)
+```
+
+Looking at tooth growth length as a function of dosage for the two supplements it appears that orange juice promotes greater growth at the two lower dose levels and that growth is similar for the higher dose.
+```{r, fig.cap="Exploratory point graph of ToothGrowth", warning=FALSE, message=FALSE}
+qplot(dose, len, data=ToothGrowth, colour = supp, geom=c("point", "smooth"))
+```
+
+Calculating the mean, standard deviation and standard error of the mean for growth length over dosage groups by supplement confirms numerically the plot display: **mean values at lower dose levels are different between supplements and similar at the highest (2.0 mg) dose level**.
+
+```{r}
+ddply(ToothGrowth, c("dose", "supp"), summarise, mean = mean(len), sd = sd(len), sem=(sd(len)/sqrt(length(len))))
+```
+
+# Condifence Intervals: T-tests for mean difference by supplent type
+
+```{r}
+t.test(len ~ supp, var.equal=TRUE,  paired=FALSE, data=ToothGrowth)
+
+```
+
+
+# Interpretation
+
+```{r}
+t.test(len ~ supp, var.equal=FALSE, paired=FALSE, data=ToothGrowth)
+
+```
+
+# Assumptions
+1. The Guinea pigs were assigned randomly to the groups of supplement and dosage.
+2. These Guinea pigs represent the general Guinea pig population.
+3. Variance of mean growth is equal across the groups.
+
+# Conclusions
+1. Across dosages the difference in tooth growth length between supplements is not significant.
+2. The dosage amounts are statistically significant.
+3. At the highest level 2.0 mg there is no difference in growth between supplements.
+4. At levels 0.5mg and 1.0mg orange juice promotes greater tooth growth than the vitamin supplement.
