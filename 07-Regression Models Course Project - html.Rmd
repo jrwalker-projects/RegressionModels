@@ -68,10 +68,12 @@ fit4 <- lm(mpg ~ wt + qsec + factor(am) + disp, mtcars)
 anova(fit1, fit2, fit3, fit4)
 ```
 ### Interpretation: Coefficients, Residuals and Uncertainty
-In the best fit model changing from automatic to manual transmission account improves mpg by 2.9. From the P-value it is significant, but only just so. The standard error has increased compared to the original model but the model now accounts for 83% of the variation mpg. Looking at variable inflation for the new model the numbers look much better. A confidence interval from the new model `confint(fitbest)` says with 95% confidence that the actual value is between 0.04 and 5.8 mpg gained switching from automatic to manual transmissions. 
+In the best fit model changing from automatic to manual transmission account improves mpg by 2.9. From the P-value it is significant, but only just so. The standard error has increased compared to the original model but the model now accounts for 83% of the variation mpg. Looking at variable inflation for the new model the numbers look much better. A confidence interval from the new model says with 95% confidence that the actual value is between 0.04 and 5.8 mpg gained switching from automatic to manual transmissions. 
 ```{r, collapse=TRUE}
 sqrt(vif(fitbest))
+confint(fitbest, level=0.95)
 ```
+
 Looking at the residuals vs fitted plot (Figure 4a), there is no clear pattern remaining showing some quality of fit. The Q-Q plot (Appendix - Figure 4b) shows a slightly straight line - certainly problems but perhaps not a bad fit for a small number of data points. The Scale-Location and Residuals vs Leverage plots show no major problems. The influence plot (Figure 5) shows that some points do have more significant influence though none exceed Cook's distance value of 0.5 or more.
 
 ```{r, echo=FALSE, fig.width=6, fig.height=6, warning=FALSE, message=FALSE}
@@ -83,4 +85,7 @@ mtext("Figures 4 a,b,c,d: Residual Plots from the fitbest linear model", side = 
 ```{r, echo=FALSE, fig.width=8, fig.height=4, warning=FALSE, message=FALSE}
 influencePlot(fitbest, id.method="identify", main="Figure 5:Influence Plot", sub="Circle size is proportial to Cook's Distance" )
 ```
+
+The R markdown is available on [Github](https://github.com/jrwalker-projects/RegressionModels) along with the markdown for the original course assignment pdf output. The pdf version deals with length constraints for the assignment where this version attempts to be more lucid.
+
 
