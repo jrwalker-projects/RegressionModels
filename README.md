@@ -1,6 +1,9 @@
 # RegressionModels
 Regression models course project
 
+[![Project Status: Unsupported – The project has reached a stable, usable state but the author(s) have ceased all work on it. A new maintainer may be desired.](http://www.repostatus.org/badges/latest/unsupported.svg)](http://www.repostatus.org/#unsupported)
+
+
 The programming assignment for the Regression Models course was to look at the mtcars dataset included with R and to answer two questions:
 1) Is an automatic or manual transmission better for MPG? 
   We find that manual transmission is better and that the difference using this dataset is statistically significant. 
